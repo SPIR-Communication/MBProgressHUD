@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "MBProgressHUD.h"
+#import "MBProgressHUD+Additions.h"
 
 @interface HudDemoViewController : UIViewController <MBProgressHUDDelegate> {
 	MBProgressHUD *HUD;
@@ -27,6 +27,7 @@
 - (IBAction)showUsingBlocks:(id)sender;
 - (IBAction)showOnWindow:(id)sender;
 - (IBAction)showURL:(id)sender;
+- (IBAction)showToast:(id)sender;
 
 - (void)myTask;
 - (void)myProgressTask;

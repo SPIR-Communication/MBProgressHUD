@@ -186,6 +186,10 @@
 	HUD.delegate = self;
 }
 
+- (IBAction)showToast:(id)sender {
+	[MBProgressHUD toastMessage:@"Hello !" andDuration:1.5];
+}
+
 
 - (IBAction)showWithGradient:(id)sender {
 	
