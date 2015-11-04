@@ -7,18 +7,42 @@
 //
 
 #import "HudDemoViewController.h"
+#import "MBProgressHUD.h"
 #import <unistd.h>
+
+
+#define SCREENSHOT_MODE 0
+
+#ifndef kCFCoreFoundationVersionNumber_iOS_8_0
+	#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
+#endif
+
+
+@interface HudDemoViewController () <MBProgressHUDDelegate> {
+	MBProgressHUD *HUD;
+	long long expectedLength;
+	long long currentLength;
+}
+
+@property (retain, nonatomic) IBOutletCollection(UIButton) NSArray *buttons;
+
+@end
+
 
 @implementation HudDemoViewController
 
-#pragma mark -
-#pragma mark Constants
-
-#pragma mark -
-#pragma mark Lifecycle methods
+#pragma mark - Lifecycle methods
 
 - (void)viewDidLoad {
 	UIView *content = [[self.view subviews] objectAtIndex:0];
+#if SCREENSHOT_MODE
+	[content.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+#endif
+	if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_7_0) {
+		[self.buttons setValue:@5.f forKeyPath:@"layer.cornerRadius"];
+	} else {
+		[self.buttons setValue:nil forKey:@"backgroundColor"];
+	}
 	((UIScrollView *)self.view).contentSize = content.bounds.size;
 }
 
@@ -32,11 +56,11 @@
 }
 
 - (void)dealloc {
+	[_buttons release];
 	[super dealloc];
 }
 
-#pragma mark -
-#pragma mark IBActions
+#pragma mark - Actions
 
 - (IBAction)showSimple:(id)sender {
 	// The hud will dispable all input on the view (use the higest view possible in the view hierarchy)
@@ -175,7 +199,7 @@
 }
 
 - (IBAction)showURL:(id)sender {
-	NSURL *URL = [NSURL URLWithString:@"https://github.com/matej/MBProgressHUD/zipball/master"];
+	NSURL *URL = [NSURL URLWithString:@"http://a1408.g.akamai.net/5/1408/1388/2005110403/1a1a1ad948be278cff2d96046ad90768d848b41947aa1986/sample_iPod.m4v.zip"];
 	NSURLRequest *request = [NSURLRequest requestWithURL:URL];
 	
 	NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
@@ -213,7 +237,6 @@
 	hud.mode = MBProgressHUDModeText;
 	hud.labelText = @"Some message...";
 	hud.margin = 10.f;
-	hud.yOffset = 150.f;
 	hud.removeFromSuperViewOnHide = YES;
 	
 	[hud hide:YES afterDelay:3];
@@ -230,8 +253,7 @@
 	[HUD showWhileExecuting:@selector(myTask) onTarget:self withObject:nil animated:YES];	
 }
 
-#pragma mark -
-#pragma mark Execution code
+#pragma mark - Execution code
 
 - (void)myTask {
 	// Do something usefull in here instead of sleeping ...
@@ -265,19 +287,22 @@
 	HUD.mode = MBProgressHUDModeIndeterminate;
 	HUD.labelText = @"Cleaning up";
 	sleep(2);
-	// The sample image is based on the work by www.pixelpressicons.com, http://creativecommons.org/licenses/by/2.5/ca/
-	// Make the customViews 37 by 37 pixels for best results (those are the bounds of the build-in progress indicators)
-	HUD.customView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"37x-Checkmark.png"]] autorelease];
+	// UIImageView is a UIKit class, we have to initialize it on the main thread
+	__block UIImageView *imageView;
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		UIImage *image = [UIImage imageNamed:@"37x-Checkmark.png"];
+		imageView = [[UIImageView alloc] initWithImage:image];
+	});
+	HUD.customView = [imageView autorelease];
 	HUD.mode = MBProgressHUDModeCustomView;
 	HUD.labelText = @"Completed";
 	sleep(2);
 }
 
-#pragma mark -
-#pragma mark NSURLConnectionDelegete
+#pragma mark - NSURLConnectionDelegete
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-	expectedLength = [response expectedContentLength];
+	expectedLength = MAX([response expectedContentLength], 1);
 	currentLength = 0;
 	HUD.mode = MBProgressHUDModeDeterminate;
 }
@@ -297,8 +322,7 @@
 	[HUD hide:YES];
 }
 
-#pragma mark -
-#pragma mark MBProgressHUDDelegate methods
+#pragma mark - MBProgressHUDDelegate
 
 - (void)hudWasHidden:(MBProgressHUD *)hud {
 	// Remove HUD from screen when the HUD was hidded
@@ -307,4 +331,8 @@
 	HUD = nil;
 }
 
+- (void)viewDidUnload {
+	[self setButtons:nil];
+	[super viewDidUnload];
+}
 @end
