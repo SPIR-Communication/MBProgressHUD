@@ -13,24 +13,22 @@
 {	
 	UIFont *font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:16.0];
 	
-	MBProgressHUD *toastHud = [[[MBProgressHUD alloc] initWithView:_view] autorelease];
+	MBProgressHUD *toastHud = [[MBProgressHUD alloc] initWithView:_view];
 	[_view addSubview:toastHud];
 	[toastHud removeFromSuperViewOnHide];
 	
 	UIView	*customView =  [[UIView alloc] initWithFrame:CGRectMake(.0, .0, 160.0, 160.0)];
 	UILabel *label = [[UILabel alloc] initWithFrame:customView.frame];
-	[label setTextAlignment:UITextAlignmentCenter];
+	[label setTextAlignment:NSTextAlignmentCenter];
 	[label setTextColor:[UIColor whiteColor]];
 	[label setBackgroundColor:[UIColor clearColor]];
 	[label setNumberOfLines:10];
 	[label setText:_message];
 	[label setFont:font];
 	[customView addSubview:label];
-	[label release];
 	
 	[toastHud setMargin:3.0];
 	[toastHud setCustomView:customView];
-	[customView release];
 	
 	[toastHud setMode:MBProgressHUDModeCustomView];
 	[toastHud show:YES];
